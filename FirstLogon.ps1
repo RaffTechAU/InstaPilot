@@ -1,7 +1,3 @@
-## Clean script files
-Remove-Item C:\Windows\Temp\*.ps1 -Force -Verbose
-Remove-Item C:\Windows\System32\nircmd* -Force -Verbose -ErrorAction SilentlyContinue
-
 ## Get device model and CPU from system
 $Model = Get-ComputerInfo -Property CsModel | Select-Object -ExpandProperty CsModel
 $CPU = Get-WMIObject win32_Processor | select-object name | Select-Object -ExpandProperty name
@@ -22,12 +18,12 @@ else { exit 0 }
 
 do { $Asset = [int] [Microsoft.VisualBasic.Interaction]::InputBox(
     "Please input the 'Asset Number' (e.g. 123456):", #Description
-    "Pared CSG IT" #Title
+    "Raff-Tech InstaPilot" #Title
 ) } until ($Asset)
 
 do { $Contract = [int] [Microsoft.VisualBasic.Interaction]::InputBox(
     "Please input the 'Contract Number' (e.g. 12):", #Description
-    "Pared CSG IT" #Title
+    "Raff-Tech InstaPilot" #Title
 ) } until ($Contract)
 
 ## Wait for internet
