@@ -40,61 +40,6 @@ param (
      [Switch] $Provision
 )
 
-if (!$Install -and !$Provision) { Write-Host "No arguments provided!" }
-elseif ($Install -and !$Provision) { InstaPilotInstall }
-elseif ($Provision -and !$Install) { InstaPilotProvision }
-else { Write-Host "Bad arguments!" }
-
-function InstaPilotInstall {
-    # Create logon script GPO
-    CreateGPO
-
-    Start-Sleep 2
-
-    ## Set time
-    SetTime
-
-    ## Download NirCMD for WindowsStyle hijacking
-    GetNirCMD
-
-    start-sleep 5
-}
-
-function InstaPilotProvision {
-
-    Start-Sleep 5
-
-    ClearScreen
-
-    ## Resyncing the time
-    SetTime
-
-    ## Load modules
-    LoadModules
-
-    ## For good measure :)
-    ClearScreen
-
-    ## Install driver pack
-    LoadDrivers
-
-    Start-sleep 2
-
-    ## Run a full system update
-    RunUpdates
-
-    Start-Sleep 2
-
-    ## Wait for tenant if device is hybrid
-    HybridWait
-
-    ## Connect Graph services
-    Connect-MSGraph
-
-    ## Build GUI and enrol
-    EnrolDevice -ChosenProfile (BuildGUI).SelectedItem
-}
-
 function Write-HostCenter { param($Message) Write-Host; Write-Host ("{0}{1}" -f (' ' * (([Math]::Max(0, $Host.UI.RawUI.BufferSize.Width / 2) - [Math]::Floor($Message.Length / 2)))), $Message) -f Green; Write-Host }
 
 function CreateGPO {
@@ -402,3 +347,58 @@ function RemoveGPO {
 
     gpupdate /wait:10
 }
+
+function InstaPilotInstall {
+    # Create logon script GPO
+    CreateGPO
+
+    Start-Sleep 2
+
+    ## Set time
+    SetTime
+
+    ## Download NirCMD for WindowsStyle hijacking
+    GetNirCMD
+
+    start-sleep 5
+}
+
+function InstaPilotProvision {
+
+    Start-Sleep 5
+
+    ClearScreen
+
+    ## Resyncing the time
+    SetTime
+
+    ## Load modules
+    LoadModules
+
+    ## For good measure :)
+    ClearScreen
+
+    ## Install driver pack
+    LoadDrivers
+
+    Start-sleep 2
+
+    ## Run a full system update
+    RunUpdates
+
+    Start-Sleep 2
+
+    ## Wait for tenant if device is hybrid
+    HybridWait
+
+    ## Connect Graph services
+    Connect-MSGraph
+
+    ## Build GUI and enrol
+    EnrolDevice -ChosenProfile (BuildGUI).SelectedItem
+}
+
+if (!$Install -and !$Provision) { Write-Host "No arguments provided!" }
+elseif ($Install -and !$Provision) { InstaPilotInstall }
+elseif ($Provision -and !$Install) { InstaPilotProvision }
+else { Write-Host "Bad arguments!" }
