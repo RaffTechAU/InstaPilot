@@ -98,8 +98,6 @@
                     <WillShowUI>OnError</WillShowUI>
                 </ProductKey>
                 <AcceptEula>true</AcceptEula>
-                <FullName>ParedIT</FullName>
-                <Organization>The Pared Foundation</Organization>
             </UserData>
         </component>
     </settings>
@@ -147,12 +145,6 @@
             <RegisteredOrganization></RegisteredOrganization>
             <DisableAutoDaylightTimeSet>false</DisableAutoDaylightTimeSet>
             <TimeZone>AUS Eastern Standard Time</TimeZone>
-            <FirstLogonCommands>
-                <SynchronousCommand wcm:action="add">
-                    <Order>1</Order>
-                    <CommandLine>powershell -ep bypass -command &quot;iwr -useb 10.8.45.1/FirstLogon.ps1 | iex&quot;</CommandLine>
-                </SynchronousCommand>
-            </FirstLogonCommands>
         </component>
         <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <UILanguage>en-US</UILanguage>
