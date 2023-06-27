@@ -1,14 +1,14 @@
 <#PSScriptInfo
 
-.VERSION 1.0
+.VERSION 0.1.0
 
 .GUID 279ce402-5fa5-4095-9b92-a5c1a45dcf5f
 
 .AUTHOR jacobraffoul@outlook.com.au
 
-.COMPANYNAME 
+.COMPANYNAME Raffoul Technologies
 
-.COPYRIGHT 
+.COPYRIGHT Raffoul Technologies 2023, All rights reserved. 
 
 .TAGS 
 
