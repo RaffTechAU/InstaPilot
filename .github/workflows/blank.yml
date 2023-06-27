@@ -33,4 +33,4 @@ jobs:
           # The path to the script file
           path: .\Run-InstaPilot.ps1
           # NuGet API Key for PowerShell Gallery
-          nuget_api_key: oy2p24bubh2ygur3drjajz35fuwk7n3ebm5lzjieid7k5m
+          nuget_api_key: oy2nnecgzto54mzqribalcveg3hd4csuvfctx43ees2fwi
