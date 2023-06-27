@@ -154,5 +154,4 @@
             <InputLocale>0c09:00000409</InputLocale>
         </component>
     </settings>
-    <cpi:offlineImage cpi:source="catalog://parstorage/software/windows/windows10/install_windows 10 education.clg" xmlns:cpi="urn:schemas-microsoft-com:cpi" />
 </unattend>
