@@ -31,7 +31,7 @@ jobs:
         uses: jcwillox/action-publish-powershell-script@v1.0.1
         with:
           # Optional name to use instead of the filename
-          name: InstaPilot
+          name: Run-InstaPilot
           # The path to the script file
           path: .\Run-InstaPilot.ps1
           # NuGet API Key for PowerShell Gallery
