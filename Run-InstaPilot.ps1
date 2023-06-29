@@ -48,7 +48,7 @@ function CreateGPO {
     Set-Content "C:\Windows\System32\GroupPolicy\User\Scripts\scripts.ini" -Value '
     [Logon]
     0CmdLine="%windir%\System32\cmd.exe"
-    0Parameters="/c "start powershell -ep bypass -command "do { $ping = test-netconnection fast.com } until ($ping.PingSucceeded); run-instapilot.ps1 -provision""
+    0Parameters="/c "start powershell -ep bypass -command "do { $ping = test-netconnection fast.com } until ($ping.PingSucceeded); C:\Windows\Temp\run-instapilot.ps1 -provision""
     ' -Encoding Unicode -Force -Verbose
     
     $MachineGpExtensions = '{42B5FAAE-6536-11D2-AE5A-0000F87571E3}{40B6664F-4972-11D1-A7CA-0000F87571E3}'
@@ -72,7 +72,7 @@ function CreateGPO {
 }
 
 function SetTime {
-    Write-HostCenter 'Setting the time server...'
+    Write-HostCenter 'Syncing the tiem...'
     net start w32time
     w32tm /resync /force
 }
