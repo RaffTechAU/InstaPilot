@@ -122,8 +122,8 @@ function LoadDrivers {
     if (-not(Test-Path C:\Windows\Temp\DriversFinished.txt)) {
         Write-HostCenter 'Installing the correct device drivers...'
         $Device = Get-ComputerInfo -Property CsModel,OSName
-        $Link = (Invoke-WebRequest 'https://raw.githubusercontent.com/RaffTechAU/InstaPilot/main/Drivers.csv' -UseBasicParsing -Verbose).Content | 
-        ConvertFrom-CSV | Where-Object { ($_.Model -eq $Device.CsModel) -and ($_.OS -eq $Device.OSName.split(" ")[2]) } | Select-Object -ExpandProperty Link
+        $Link = Import-CSV C:\Windows\Temp\Driver-Links.csv -Verbose | 
+        Where-Object { ($_.Model -eq $Device.CsModel) -and ($_.OS -eq $Device.OSName.split(" ")[2]) } | Select-Object -ExpandProperty Link
         if ($Link) {
             $Drivers = Start-BitsTransfer -Source $Link -Destination 'C:\Windows\Temp' -Verbose
             Start-Process msiexec.exe -ArgumentList "/i $Drivers /passive /norestart" -Wait
