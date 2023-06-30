@@ -115,26 +115,17 @@ function LoadModules {
 }
 
 function LoadDrivers {
-    if (!(test-path C:\Windows\Logs\InstaPilot\DriversFinished.txt)) {
+    if (-not(Test-Path C:\Windows\Temp\InstaPilot\DriversFinished.txt)) {
         Write-HostCenter 'Installing the correct device drivers...'
         $Device = Get-ComputerInfo -Property CsModel,OSName
         $Link = (Invoke-WebRequest 'https://raw.githubusercontent.com/RaffTechAU/InstaPilot/main/Driver-Links.csv' -UseBasicParsing -Verbose).Content | 
         ConvertFrom-CSV | Where-Object { ($_.Model -eq $Device.CsModel) -and ($_.OS -eq $Device.OSName.split(" ")[2]) } | Select-Object -ExpandProperty Link
         if ($Link) {
-            Add-Type -AssemblyName PresentationCore,PresentationFramework
-            $ButtonType = [System.Windows.MessageBoxButton]::YesNo
-            $MessageboxTitle = "Install drivers?"
-            $Messageboxbody = "Download and install the device driver package?"
-            $MessageIcon = [System.Windows.MessageBoxImage]::Information
-            $Result = [System.Windows.MessageBox]::Show($Messageboxbody,$MessageboxTitle,$ButtonType,$messageicon)
-            if ($Result -eq 'Yes') { 
-                Start-BitsTransfer -Source $Link -Destination 'C:\Windows\Temp\Drivers.msi' -Verbose
-                Start-Process msiexec.exe -ArgumentList "/i C:\Windows\Temp\Drivers.msi /passive /norestart" -Wait
-                while (((get-process) -like "*msiexec*").count -ge 2) { start-sleep 3 }
-                New-Item C:\Windows\Logs\InstaPilot\DriversFinished.txt -Force -Verbose
-            }
-            if ($Result -eq "No") { New-Item C:\Windows\Logs\InstaPilot\DriversFinished.txt -Force -Verbose }
-        } else { Write-Host "Can't find drivers!" -f Red }
+            Start-BitsTransfer -Source $Link -Destination 'C:\Windows\Temp\Drivers.msi' -Verbose
+            Start-Process msiexec.exe -ArgumentList "/i C:\Windows\Temp\Drivers.msi /passive /norestart" -Wait
+            while (((get-process) -like "*msiexec*").count -ge 2) { start-sleep 3 }
+            New-Item C:\Windows\Temp\InstaPilot\DriversFinished.txt
+        } else { Write-Host "Can't find drivers!" -f Red}
     }
 }
 
