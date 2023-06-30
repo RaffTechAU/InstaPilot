@@ -44,7 +44,7 @@ function CreateGPO {
     Set-Content "C:\Windows\System32\GroupPolicy\User\Scripts\scripts.ini" -Value '
     [Logon]
     0CmdLine="%windir%\System32\cmd.exe"
-    0Parameters="/c "start powershell -ep bypass -command "do { $ping = test-netconnection fast.com } until ($ping.PingSucceeded); C:\Windows\Temp\Run-InstaPilot.ps1""
+    0Parameters="/c "start powershell -ep bypass -command "do { $ping = test-netconnection fast.com } until ($ping.PingSucceeded); cls; C:\Windows\Temp\Run-InstaPilot.ps1""
     ' -Encoding Unicode -Force -Verbose
     
     $MachineGpExtensions = '{42B5FAAE-6536-11D2-AE5A-0000F87571E3}{40B6664F-4972-11D1-A7CA-0000F87571E3}'
@@ -115,7 +115,7 @@ function LoadModules {
 }
 
 function LoadDrivers {
-    if (-not(Test-Path C:\Windows\Temp\InstaPilot\DriversFinished.txt)) {
+    if (-not(Test-Path C:\Windows\Logs\InstaPilot\DriversFinished.txt)) {
         Write-HostCenter 'Installing the correct device drivers...'
         $Device = Get-ComputerInfo -Property CsModel,OSName
         $Link = (Invoke-WebRequest 'https://raw.githubusercontent.com/RaffTechAU/InstaPilot/main/Driver-Links.csv' -UseBasicParsing -Verbose).Content | 
@@ -124,7 +124,7 @@ function LoadDrivers {
             Start-BitsTransfer -Source $Link -Destination 'C:\Windows\Temp\Drivers.msi' -Verbose
             Start-Process msiexec.exe -ArgumentList "/i C:\Windows\Temp\Drivers.msi /passive /norestart" -Wait
             while (((get-process) -like "*msiexec*").count -ge 2) { start-sleep 3 }
-            New-Item C:\Windows\Temp\InstaPilot\DriversFinished.txt
+            New-Item C:\Windows\Logs\InstaPilot\DriversFinished.txt
         } else { Write-Host "Can't find drivers!" -f Red}
     }
 }
