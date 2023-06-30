@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 0.1.1
+.VERSION 0.2.0
 
 .GUID 279ce402-5fa5-4095-9b92-a5c1a45dcf5f
 
@@ -35,10 +35,6 @@
  Sample description, for now :) 
 
 #> 
-param (
-     [Switch] $Install,
-     [Switch] $Provision
-)
 
 function Write-HostCenter { param($Message) Write-Host; Write-Host ("{0}{1}" -f (' ' * (([Math]::Max(0, $Host.UI.RawUI.BufferSize.Width / 2) - [Math]::Floor($Message.Length / 2)))), $Message) -f Green; Write-Host }
 
@@ -48,7 +44,7 @@ function CreateGPO {
     Set-Content "C:\Windows\System32\GroupPolicy\User\Scripts\scripts.ini" -Value '
     [Logon]
     0CmdLine="%windir%\System32\cmd.exe"
-    0Parameters="/c "start powershell -ep bypass -command "do { $ping = test-netconnection fast.com } until ($ping.PingSucceeded); C:\Windows\Temp\run-instapilot.ps1 -provision""
+    0Parameters="/c "start powershell -ep bypass -command "do { $ping = test-netconnection fast.com } until ($ping.PingSucceeded); C:\Windows\Temp\Run-InstaPilot.ps1""
     ' -Encoding Unicode -Force -Verbose
     
     $MachineGpExtensions = '{42B5FAAE-6536-11D2-AE5A-0000F87571E3}{40B6664F-4972-11D1-A7CA-0000F87571E3}'
@@ -119,32 +115,41 @@ function LoadModules {
 }
 
 function LoadDrivers {
-    if (-not(Test-Path C:\Windows\Temp\DriversFinished.txt)) {
+    if (!(test-path C:\Windows\Logs\InstaPilot\DriversFinished.txt)) {
         Write-HostCenter 'Installing the correct device drivers...'
         $Device = Get-ComputerInfo -Property CsModel,OSName
         $Link = (Invoke-WebRequest 'https://raw.githubusercontent.com/RaffTechAU/InstaPilot/main/Driver-Links.csv' -UseBasicParsing -Verbose).Content | 
         ConvertFrom-CSV | Where-Object { ($_.Model -eq $Device.CsModel) -and ($_.OS -eq $Device.OSName.split(" ")[2]) } | Select-Object -ExpandProperty Link
         if ($Link) {
-            $Drivers = Start-BitsTransfer -Source $Link -Destination 'C:\Windows\Temp' -Verbose
-            Start-Process msiexec.exe -ArgumentList "/i $Drivers /passive /norestart" -Wait
-            while (((get-process) -like "*msiexec*").count -ge 2) { start-sleep 3 }
-            New-Item C:\Windows\Temp\DriversFinished.txt
+            Add-Type -AssemblyName PresentationCore,PresentationFramework
+            $ButtonType = [System.Windows.MessageBoxButton]::YesNo
+            $MessageboxTitle = "Install drivers?"
+            $Messageboxbody = "Download and install the device driver package?"
+            $MessageIcon = [System.Windows.MessageBoxImage]::Information
+            $Result = [System.Windows.MessageBox]::Show($Messageboxbody,$MessageboxTitle,$ButtonType,$messageicon)
+            if ($Result -eq 'Yes') { 
+                Start-BitsTransfer -Source $Link -Destination 'C:\Windows\Temp\Drivers.msi' -Verbose
+                Start-Process msiexec.exe -ArgumentList "/i C:\Windows\Temp\Drivers.msi /passive /norestart" -Wait
+                while (((get-process) -like "*msiexec*").count -ge 2) { start-sleep 3 }
+                New-Item C:\Windows\Logs\InstaPilot\DriversFinished.txt -Force -Verbose
+            }
+            if ($Result -eq "No") { New-Item C:\Windows\Logs\InstaPilot\DriversFinished.txt -Force -Verbose }
         } else { Write-Host "Can't find drivers!" -f Red }
     }
 }
 
 function RunUpdates {
-    if (!(test-path C:\Windows\Logs\SkipUpdate.txt) -and !(test-path C:\Windows\Logs\DoUpdate.txt)) {
+    if (!(test-path C:\Windows\Logs\InstaPilot\SkipUpdate.txt) -and !(test-path C:\Windows\Logs\InstaPilot\DoUpdate.txt)) {
         Add-Type -AssemblyName PresentationCore,PresentationFramework
         $ButtonType = [System.Windows.MessageBoxButton]::YesNo
         $MessageboxTitle = "Update?"
         $Messageboxbody = "Run a full system update?"
         $MessageIcon = [System.Windows.MessageBoxImage]::Information
         $Result = [System.Windows.MessageBox]::Show($Messageboxbody,$MessageboxTitle,$ButtonType,$messageicon)
-        if ($Result -eq 'Yes') { New-Item -Path C:\Windows\Logs -Name DoUpdate.txt -ItemType File }
-        if ($Result -eq "No") { New-Item -Path C:\Windows\Logs -Name SkipUpdate.txt -ItemType File }
+        if ($Result -eq 'Yes') { New-Item C:\Windows\Logs\InstaPilot\DoUpdate.txt -Force -Verbose }
+        if ($Result -eq "No") { New-Item C:\Windows\Logs\InstaPilot\SkipUpdate.txt -Force -Verbose }
     }
-    if (test-path C:\Windows\Logs\DoUpdate.txt) {
+    if (test-path C:\Windows\Logs\InstaPilot\DoUpdate.txt) {
         Write-HostCenter 'Running a full system update...'
 
         do { $Error.Clear(); Install-WindowsUpdate -AcceptAll -AutoReboot } until ( $Error.Count -eq 0)
@@ -218,7 +223,7 @@ function BuildGUI {
 }
 
 function HybridWait {
-    if (Test-Path C:\Windows\Logs\hybrid.txt) {
+    if ((Get-Content C:\Windows\Logs\InstaPilot\Status.txt) -like "Hybrid") {
         Write-HostCenter 'Device is hybrid. Waiting for tenant...'
 
         for ($i = 1; $i -le 30; $i++ ) {
@@ -234,7 +239,8 @@ function HybridWait {
                 $Messageboxbody = "Autopilot policies have successfully been detected. Press OK to proceed to sign in."
                 $MessageIcon = [System.Windows.MessageBoxImage]::Information
                 [System.Windows.MessageBox]::Show($Messageboxbody,$MessageboxTitle,$ButtonType,$messageicon)
-            
+                
+                Set-Content C:\Windows\Logs\InstaPilot\Status.txt "Success" -Force -Verbose
                 Write-HostCenter "Refreshing OOBE..."
                 RemoveGPO
                 taskkill /im wwahost.exe /f
@@ -300,11 +306,11 @@ function EnrolDevice($ChosenProfile) {
     Get-WindowsAutopilotInfo.ps1 -GroupTag "$GroupTag" -online
 
     if ($Method -eq 'Hybrid') {
-        New-Item -Path C:\Windows\Logs -Name hybrid.txt -ItemType File
+        Set-Content C:\Windows\Logs\InstaPilot\Status.txt "Hybrid" -Force -Verbose
         Restart-Computer -Force
     } else {
         ClearScreen
-
+        Set-Content C:\Windows\Logs\InstaPilot\Status.txt "Azure" -Force -Verbose
         Add-Type -AssemblyName PresentationCore,PresentationFramework
         $ButtonType = [System.Windows.MessageBoxButton]::Ok
         $MessageboxTitle = "Success!"
@@ -316,6 +322,7 @@ function EnrolDevice($ChosenProfile) {
         
         RemoveGPO
         taskkill /im wwahost.exe /f
+        Set-Content C:\Windows\Logs\InstaPilot\Status.txt "Success" -Force -Verbose
         exit
     }
 }
@@ -349,6 +356,7 @@ function RemoveGPO {
 }
 
 function InstaPilotInstall {
+
     # Create logon script GPO
     CreateGPO
 
@@ -361,6 +369,9 @@ function InstaPilotInstall {
     GetNirCMD
 
     start-sleep 5
+
+    ## Set install status
+    New-Item C:\Windows\Logs\InstaPilot\Status.txt -Value "Initialised" -Force -Verbose
 }
 
 function InstaPilotProvision {
@@ -398,7 +409,9 @@ function InstaPilotProvision {
     EnrolDevice -ChosenProfile (BuildGUI).SelectedItem
 }
 
-if (!$Install -and !$Provision) { Write-Host "No arguments provided!" }
-elseif ($Install -and !$Provision) { InstaPilotInstall }
-elseif ($Provision -and !$Install) { InstaPilotProvision }
-else { Write-Host "Bad arguments!" }
+$scriptPath = $PSScriptRoot + "\" + $MyInvocation.MyCommand.Name
+
+Write-Host "Script Path: $scriptPath"
+
+if (Test-Path C:\Windows\Logs\InstaPilot\Status.txt) { InstaPilotProvision }
+else { InstaPilotInstall }
