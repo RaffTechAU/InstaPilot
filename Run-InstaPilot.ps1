@@ -1,6 +1,6 @@
 <#PSScriptInfo
 
-.VERSION 0.2.0
+.VERSION 0.2.2
 
 .GUID 279ce402-5fa5-4095-9b92-a5c1a45dcf5f
 
@@ -268,7 +268,7 @@ function EnrolDevice($ChosenProfile) {
     }
 
     ## If the chosen profile doesn't match the existing grouptag
-    if (($NULL -ne $CurrentProfile) -and ("$($List.SelectedItem)" -ne "$CurrentProfile")) {
+    if (($NULL -ne $CurrentProfile) -and ("$ChosenProfile" -ne "$CurrentProfile")) {
         
         Write-HostCenter "Changing groupTag to '$GroupTag'..."
 
@@ -399,10 +399,6 @@ function InstaPilotProvision {
     ## Build GUI and enrol
     EnrolDevice -ChosenProfile (BuildGUI).SelectedItem
 }
-
-$scriptPath = $PSScriptRoot + "\" + $MyInvocation.MyCommand.Name
-
-Write-Host "Script Path: $scriptPath"
 
 if (Test-Path C:\Windows\Logs\InstaPilot\Status.txt) { InstaPilotProvision }
 else { InstaPilotInstall }
